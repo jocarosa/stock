@@ -1,0 +1,85 @@
+body{
+    background-color: #212121;
+}
+input{
+    font-size: 30px;
+    border:1px solid #01579B;
+    width: 400px;
+}
+button{
+    font-size: 20px;
+   padding: 10px;
+   font-family: fantasy;
+   width: 400px;
+   background-color: #0288D1;
+   color:white;
+   border-radius: 8px;
+   
+}
+
+
+#tablestocks td{
+      background-color: #424242;
+    padding:10px;
+    text-align: center;
+}
+#tablestocks{
+    margin:10px 0px 45px 300px;
+    color:white;
+    float:left;
+}
+#insertnew td{
+   
+    text-align: center;
+    padding:10px;
+}
+#insertnew{
+  
+    margin:10px 0px 0px 100px;
+    float:left;
+    color:white;
+}
+#idtitle{
+    
+    text-align: center;
+    font-size:40px;
+    padding: 10px;
+    margin:10px 0 20px 0;
+    color:white;
+    background-color: #424242;
+}
+#img_graph {
+    margin:auto;
+    width: 200px;
+    
+}
+#img_graph img{
+    margin-left:55px;
+    
+}
+#inserted{
+     background-color: #424242;
+    padding:10px;
+    text-align: center;
+    float:left;
+    margin:10px 0px 0px 30px;
+    color:white;
+    
+   
+}
+#inserted td{
+    padding:10px;
+    margin-top: 10px;
+   
+}
+
+#inserted a{
+   color:white;
+   text-decoration: none;
+}
+.rowinserted{
+    color:black;
+    background-color: #BBDEFB;
+    font-weight: bold;
+    
+}

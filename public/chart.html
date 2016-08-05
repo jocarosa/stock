@@ -1,0 +1,183 @@
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
+   "http://www.w3.org/TR/html4/frameset.dtd">
+<html ng-app="app" >
+  
+     
+<head>
+    <script src="/socket.io/socket.io.js"></script>  
+    <title>Embed API Demo</title>
+    <link rel="stylesheet" href="./bower_components/angular-chart.js/dist/angular-chart.css" />
+    <link rel="stylesheet" href="./public/css/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body  ng-controller="LineCtrl" data-ng-init="init()">
+      <!--DIV TITLE-->
+      <div id='img_graph'><img width='100' height='100' src='./public/images/graph.png'></div>
+      <div id='idtitle'>STOCK APP</div>
+     
+     
+   
+     <!--TABLE DEFAULT STOCK-->
+     <table id='tablestocks'>
+        <tr><td colspan='2'>Defaults Stocks</td></tr>
+        <tr><td>Symbol</td><td>Description</td></tr>
+        <tr><td>ST1</td><td>STOCK ONE</td></tr>
+        <tr><td>ST2</td><td>STOCK TWO</td></tr>
+        <tr><td>ST3</td><td>STOCK THREE</td></tr>
+        <tr><td>ST4</td><td>STOCK FOUR</td></tr>
+    </table>
+    
+   <!--TABLE INSERT NEW ONE-->
+    <table id='insertnew'>
+        <tr><td>Please Insert Symbol here</td></tr>
+        <tr><td> <input type='text' ng-model='newstock'></td></tr>
+        <tr><td ><button ng-click='fnadd()'>ADD</button></td></tr>
+    </table>
+  
+  <!--TABLE STOCK INSERTED-->
+    
+    <table id='inserted' >
+      <tr class="rowinserted"><td colspan='2'>Inserted</td></tr>
+        <tr ng-repeat="x in names">
+            <td>{{x}}</td><td style=background-color:#C62828><a ng-click=delete(x) href='#'>X</a></td>
+        </tr>
+    </table> 
+   
+   <!--GRAPH-->
+    <canvas  id="line" class="chart chart-line" chart-data="data"
+    chart-labels="labels" chart-series="series" chart-options="options"
+    chart-dataset-override="datasetOverride" chart-click="onClick"/> 
+
+
+
+
+</body>
+
+
+
+  <script src="/bower_components/angular/angular.min.js"></script>
+  <script src="/bower_components/Chart.js/Chart.js"></script>
+  <script src="/bower_components/angular-chart.js/dist/angular-chart.min.js"></script>
+
+<script>
+
+var app= angular.module("app", ["chart.js"]);
+
+
+app.controller("LineCtrl", function ($scope,socket,$http) {
+
+  $scope.init = function () {
+      
+      $http.get('/data').then(function(response){
+                    $scope.data   = response.data[0];
+                    $scope.names  = response.data[1];
+                    $scope.series = response.data[1];
+      });
+   
+    
+  };
+ 
+     
+  
+  $scope.fnadd=function(){
+    socket.emit('stocksend',$scope.newstock);   
+  };
+    
+    
+   //delete selected 
+  $scope.delete= function(element){
+     socket.emit('deletesend',element);
+  };
+ 
+ 
+ socket.on('stocksend', function (data,inputdata) {
+      
+      if(data=='no exist'){
+          console.log(data);
+      }else{
+          $scope.data   = data;
+          $scope.names  = inputdata;
+          $scope.series = inputdata;
+      }
+  });
+      
+        
+  $scope.labels = ["January", "February", "March", "April", "May", "June", "July"];
+ 
+  
+  
+  $scope.datasetOverride = [];
+  $scope.options = {
+    scales: {
+      yAxes: [
+       {
+          id: 'y-axis-1',
+          type: 'linear',
+          display: true,
+          position: 'right'
+        },
+        {
+          id: 'y-axis-2',
+          type: 'linear',
+          display: true,
+          position: 'left'
+        },{
+          id: 'y-axis-3',
+          type: 'linear',
+          display: true,
+          position: 'right'
+        },
+        {
+          id: 'y-axis-4',
+          type: 'linear',
+          display: true,
+          position: 'left'
+        }
+      ]
+    }
+  };
+  
+  
+     
+  
+});
+
+app.factory('socket',function ($rootScope) {
+  var socket = io.connect();
+
+  return {
+    on: function (eventName, callback) {
+      function wrapper() {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      }
+
+      socket.on(eventName, wrapper);
+
+      return function () {
+        socket.removeListener(eventName, wrapper);
+      };
+    },
+
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if(callback) {
+            callback.apply(socket, args);
+          }
+        });
+      });
+    }
+  };
+});
+
+
+
+</script>
+
+
+
+</html>
