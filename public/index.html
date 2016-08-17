@@ -95,11 +95,10 @@ app.factory('socket',function ($rootScope) {
 
 app.controller("LineCtrl", function ($scope,$http,socket) {
     
-    $http.get("/").then(function(){
+    $http.get("/#").then(function(){
       
       $http.get("/data").then(function(response){
-         // console.log(response.data)
-          callback(response.data)
+         callback(response.data);
       });      
       
     });
