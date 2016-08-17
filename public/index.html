@@ -4,10 +4,13 @@
   
      
 <head>
-    <script src="/socket.io/socket.io.js"></script>  
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>   
     <title>Embed API Demo</title>
     <link rel="stylesheet" href="./bower_components/angular-chart.js/dist/angular-chart.css" />
     <link rel="stylesheet" href="./public/css/main.css" rel="stylesheet" type="text/css">
+    
+   
+    
 </head>
 
 <body  ng-controller="LineCtrl" data-ng-init="init()">
@@ -38,8 +41,8 @@
     
     <table id='inserted' >
       <tr class="rowinserted"><td colspan='2'>Inserted</td></tr>
-        <tr ng-repeat="x in names">
-            <td>{{x}}</td><td style=background-color:#C62828><a ng-click=delete(x) href='#'>X</a></td>
+        <tr ng-repeat="x in inserted">
+            <td>{{x}}</td><td style=background-color:#C62828><a ng-click=deleteStock(x) href='#'>X</a></td>
         </tr>
     </table> 
    
@@ -50,11 +53,9 @@
 
 
 
-
-</body>
-
-
-
+  
+  
+  
   <script src="/bower_components/angular/angular.min.js"></script>
   <script src="/bower_components/Chart.js/Chart.js"></script>
   <script src="/bower_components/angular-chart.js/dist/angular-chart.min.js"></script>
@@ -64,53 +65,88 @@
 var app= angular.module("app", ["chart.js"]);
 
 
-app.controller("LineCtrl", function ($scope,socket,$http) {
-
-  $scope.init = function () {
-      
-      $http.get('/data').then(function(response){
-                    $scope.data   = response.data[0];
-                    $scope.names  = response.data[1];
-                    $scope.series = response.data[1];
+app.factory('socket',function ($rootScope) {
+  var socket = io.connect();
+  return {
+    on: function (eventName, callback) {
+      function wrapper() {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      }
+      socket.on(eventName, wrapper);
+      return function () {
+        socket.removeListener(eventName, wrapper);
+      };
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if(callback) {
+            callback.apply(socket, args);
+          }
+        });
       });
+    }
+  };
+});
+
+app.controller("LineCtrl", function ($scope,$http,socket) {
+    
+    $http.get("/").then(function(){
+      
+      $http.get("/data").then(function(response){
+         // console.log(response.data)
+          callback(response.data)
+      });      
+      
+    });
+    
+     function callback(dataReceived){
+      
+      //setting the data received on the chart
+      
+      $scope.labels   = ["January", "February", "March", "April", "May", "June", "July"];
+           $scope.series   = dataReceived[0];
+           $scope.data     = dataReceived[1];
+           $scope.inserted = dataReceived[0];
+    }
+   
+    $scope.fnadd=function(){
+    
+      var inputStock = $scope.newstock;
+      
+      
+      if (inputStock!=""){
+        
+          socket.emit('stocksend',inputStock);
+       
+      }
+       
+    };
+   
+    socket.on("stocksend",callback);
    
     
-  };
- 
+    
+    
+    $scope.deleteStock=function(stock){
+      
+      socket.emit('deleteStock',stock);
+    };
+    
+     socket.on("deleteStock",callback);  
+      
+       
      
-  
-  $scope.fnadd=function(){
-    socket.emit('stocksend',$scope.newstock);   
-  };
     
-    
-   //delete selected 
-  $scope.delete= function(element){
-     socket.emit('deletesend',element);
-  };
- 
- 
- socket.on('stocksend', function (data,inputdata) {
-      
-      if(data=='no exist'){
-          console.log(data);
-      }else{
-          $scope.data   = data;
-          $scope.names  = inputdata;
-          $scope.series = inputdata;
-      }
-  });
-      
-        
-  $scope.labels = ["January", "February", "March", "April", "May", "June", "July"];
- 
-  
-  
-  $scope.datasetOverride = [];
-  $scope.options = {
-    scales: {
-      yAxes: [
-       {
+   $scope.datasetOverride = [];
+    $scope.options = {
+      scales: {
+        yAxes: [
+        {
           id: 'y-axis-1',
           type: 'linear',
           display: true,
@@ -133,51 +169,29 @@ app.controller("LineCtrl", function ($scope,socket,$http) {
           display: true,
           position: 'left'
         }
-      ]
-    }
-  };
-  
-  
-     
-  
-});
-
-app.factory('socket',function ($rootScope) {
-  var socket = io.connect();
-
-  return {
-    on: function (eventName, callback) {
-      function wrapper() {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
+        ]
       }
+    };
+    
+  
 
-      socket.on(eventName, wrapper);
+});   
+  
+    
 
-      return function () {
-        socket.removeListener(eventName, wrapper);
-      };
-    },
 
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if(callback) {
-            callback.apply(socket, args);
-          }
-        });
-      });
-    }
-  };
-});
+  
+ 
+  
 
 
 
 </script>
 
+</body>
+
+  
+  
 
 
 </html>
