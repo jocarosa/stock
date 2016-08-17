@@ -20,6 +20,6 @@ app.use('/public/css',  express.static(path + '/public/css'));              //cs
 app.use('/public/images',  express.static(path + '/public/images'));        //images files
 
 
-server.listen(8080, function(){
+server.listen(process.env.PORT, function(){
   console.log('listening on 8080');
 });
